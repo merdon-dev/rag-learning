@@ -1,0 +1,13 @@
+rag-learning/
+├── data/
+│   └── knowledge.txt         # Your raw text documents / knowledge base
+├── src/
+│   ├── chunker.ts            # Splits long text into manageable chunks
+│   ├── embeddings.ts         # Converts text into numerical vectors
+│   ├── vectorStore.ts        # Stores vectors & performs cosine similarity search
+│   ├── rag.ts                # Combines retrieval + prompt + LLM generation
+│   └── index.ts              # Entry point to execute queries
+├── .env                      # API keys and configs
+├── .env.example
+├── package.json
+└── tsconfig.json

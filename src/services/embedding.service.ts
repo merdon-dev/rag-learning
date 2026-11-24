@@ -1,6 +1,6 @@
 import { GEMINI_API_KEY } from "../config/env.js";
 import { documents as knowledge } from "../data/knowledge.js";
-import type { DocumentType } from "../types/embeddingType.js";
+import type { DocumentType, EmbeddingResult } from "../types/embeddingType.js";
 import { GoogleGenAI } from "@google/genai";
 import { MinHeap } from "./embedding.class.js";
 
@@ -10,8 +10,8 @@ export type EmbeddedDocument = {
   embedding: number[];
 };
 
-const EMBEDDING_MODEL = "gemini-embedding-001";
-const EMBEDDING_DIMENSIONS = 768;
+export const EMBEDDING_MODEL = "gemini-embedding-001";
+export const EMBEDDING_DIMENSIONS = 768;
 
 const ai = new GoogleGenAI({
   apiKey: GEMINI_API_KEY,
@@ -263,3 +263,31 @@ function retrieveTopK(
 }
 
 console.log(retrieveTopK(queryEmbedding, documents, 3));
+
+export async function generateAIEmbedding(
+  text: string,
+  taskType: "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY",
+): Promise<EmbeddingResult> {
+  if (text.trim() === "") {
+    throw new Error("Text cannot be empty");
+  }
+  try {
+    const response = await ai.models.embedContent({
+      model: EMBEDDING_MODEL,
+      contents: text,
+      config: {
+        taskType,
+        outputDimensionality: EMBEDDING_DIMENSIONS,
+      },
+    });
+
+    if (!response.embeddings) {
+      throw new Error("No Embeddings returned from Gemini");
+    }
+
+    return { text, embedding: response.embeddings[0].values! };
+  } catch (error) {
+    console.error("Failed to generate embedding:", error);
+    throw error;
+  }
+}

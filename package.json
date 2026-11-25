@@ -10,6 +10,7 @@
     "embed": "nodemon --watch src --ext ts --exec tsx src/services/embedding.service.ts",
     "class": "tsx watch src/services/embedding.class.ts",
     "index": "tsx watch src/index.ts",
+    "mmr": "tsx watch src/services/mmr.service.ts",
     "build": "tsc"
   },
   "keywords": [],

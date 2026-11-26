@@ -1,6 +1,11 @@
 import { GEMINI_API_KEY } from "../config/env.js";
 import { documents as knowledge } from "../data/knowledge.js";
-import type { DocumentType, EmbeddingResult } from "../types/embeddingType.js";
+import type {
+  Document,
+  DocumentType,
+  EmbeddingResult,
+  ScoredDocument,
+} from "../types/embeddingType.js";
 import { GoogleGenAI } from "@google/genai";
 import { MinHeap } from "./embedding.class.js";
 
@@ -164,18 +169,6 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 // Test
 console.log(cosineSimilarity([1, 2], [3, 4]));
 // Approximately 0.9839
-
-export type Document = {
-  id: string;
-  text: string;
-  embedding: number[];
-};
-
-export type ScoredDocument = {
-  id: string;
-  text: string;
-  score: number;
-};
 
 export const documents: Document[] = [
   {

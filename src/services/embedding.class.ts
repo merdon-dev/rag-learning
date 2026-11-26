@@ -1,4 +1,4 @@
-import type { ScoredDocument } from "./embedding.service.js";
+import type { ScoredDocument } from "../types/embeddingType.js";
 
 class Counter {
   private count: number;

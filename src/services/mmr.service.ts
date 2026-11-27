@@ -154,7 +154,7 @@ export function selectMMRDocumentss(
   return selectedDocs;
 }
 
-export function selectMMRDocuments(
+export function selectMMRDocumentsBeforeOptimize(
   documents: MMRScoredDocument[],
   topK: number,
   lambda: number = 0.7,
@@ -215,6 +215,94 @@ export function selectMMRDocuments(
   }
   return selectedDocs;
 }
-const result = selectMMRDocuments(mockDocuments, 3, 0.7);
 
-console.log({ result });
+export function selectMMRDocuments(
+  documents: MMRScoredDocument[],
+  topK: number,
+  lambda: number = 0.7,
+): MMRScoredDocument[] {
+  // Step 1: Validate inputs
+  if (!Number.isInteger(topK) || topK <= 0) {
+    throw new Error("Top K must be a positive integer");
+  }
+
+  if (!Number.isFinite(lambda) || lambda < 0 || lambda > 1) {
+    throw new Error("Lambda must be between 0 and 1");
+  }
+
+  if (documents.length === 0) {
+    return [];
+  }
+
+  // Step 2: Initialize collections
+  const selectedDocs: MMRScoredDocument[] = [];
+  const remainingDocs = [...documents];
+
+  const redundancyMap = new Map<MMRScoredDocument, number>();
+
+  // Step 3: Select highest-relevance document
+  const highest = remainingDocs.reduce((best, current) => {
+    return current.score > best.score ? current : best;
+  });
+
+  const highestIndex = remainingDocs.indexOf(highest);
+
+  selectedDocs.push(highest);
+  remainingDocs.splice(highestIndex, 1);
+
+  // Step 4: Initialize redundancy against first selected document
+  for (const candidate of remainingDocs) {
+    const similarity = cosineSimilarity(candidate.embedding, highest.embedding);
+
+    redundancyMap.set(candidate, similarity);
+  }
+
+  // Step 5: Iterative MMR selection
+  while (selectedDocs.length < topK && remainingDocs.length > 0) {
+    let bestCandidate: MMRScoredDocument | null = null;
+    let bestMMRScore = Number.NEGATIVE_INFINITY;
+
+    // Find the best candidate using cached redundancy
+    for (const candidate of remainingDocs) {
+      const maxRedundancy = redundancyMap.get(candidate)!;
+
+      const mmrScore = lambda * candidate.score - (1 - lambda) * maxRedundancy;
+
+      if (mmrScore > bestMMRScore) {
+        bestMMRScore = mmrScore;
+        bestCandidate = candidate;
+      }
+    }
+
+    if (!bestCandidate) break;
+
+    // Select winner
+    selectedDocs.push(bestCandidate);
+
+    const selectedIndex = remainingDocs.indexOf(bestCandidate);
+    remainingDocs.splice(selectedIndex, 1);
+
+    redundancyMap.delete(bestCandidate);
+
+    // Stop if we have reached topK
+    if (selectedDocs.length >= topK) break;
+
+    // Update redundancy against newly selected document
+    for (const candidate of remainingDocs) {
+      const similarity = cosineSimilarity(
+        candidate.embedding,
+        bestCandidate.embedding,
+      );
+
+      const previousRedundancy = redundancyMap.get(candidate)!;
+
+      redundancyMap.set(candidate, Math.max(previousRedundancy, similarity));
+    }
+  }
+
+  return selectedDocs;
+}
+
+// const result = selectMMRDocuments(mockDocuments, 3, 0.7);
+
+var searchDocument = async function (query: string) {};

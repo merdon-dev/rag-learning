@@ -1,5 +1,5 @@
 import { prisma } from "../config/prisma.js";
-import type { ScoredDocument } from "./embedding.service.js";
+import type { ScoredDocument } from "../types/embeddingType.js";
 
 export async function semanticSearch(
   queryEmbedding: number[],
